@@ -1,4 +1,4 @@
-# Udacity Fullstack Nanodegree - Project 5 : Capstone Project - Casting Agency App
+# Udacity Fullstack Nanodegree - Project 5 : Capstone Project 
 
 ## Content
 
@@ -22,81 +22,59 @@ It covers following technical topics in 1 app:
 <a name="start-locally"></a>
 ## Start Project locally
 
-Make sure you `cd` into the correct folder (with all app files) before following the setup steps.
-Also, you need the latest version of [Python 3](https://www.python.org/downloads/)
-and [postgres](https://www.postgresql.org/download/) installed on your machine.
-
 To start and run the local development server,
 
 1. Initialize and activate a virtualenv:
-  ```bash
-  $ virtualenv --no-site-packages env_capstone
-  $ source env_capstone/scripts/activate
-  ```
-
 2. Install the dependencies:
 ```bash
 $ pip install -r requirements.txt
 ```
+To run the app locally, you need to setup the environment variables used inside the code. 
 
-Running this project locally means that it can´t access `Herokus` env variables.
-To fix this, you need to edit a few informations in `config.py`, so it can
-correctly connect to a local database
-
-3. Change database config so it can connect to your local postgres database
-- Open `config.py` with your editor of choice. 
-- Here you can see this dict:
- ```python
-database_setup = {
-    "database_name_production" : "agency",
-    "user_name" : "postgres", # default postgres user name
-    "password" : "testpassword123", # if applicable. If no password, just type in None
-    "port" : "localhost:5432" # default postgres port
-}
+3. Open setup.sh file and update the environment variables.
+ ```
+export AUTH0_DOMAIN='grajnikanth.us.auth0.com'
+export ALGORITHMS='RS256'
+export API_AUDIENCE='casting'
+export DATABASE_URL="postgres://localhost:5432/capstone"
+export TEST_DATABASE_URL="postgres://localhost:5432/test_capstone"
 ```
+AUTH0_DOMAIN - You can setup your own domain name per the project requirements or use the above with the bearer JWT tokens I provided in this readme. Note that the JWT tokens might expire.
 
- - Just change `user_name`, `password` and `port` to whatever you choose while installing postgres.
->_tip_: `user_name` usually defaults to `postgres` and `port` always defaults to `localhost:5432` while installing postgres, most of the time you just need to change the `password`.
+API_AUDIENCE - Update this per your AUTH0 settings if not using the above.
 
-4. Setup Auth0
-If you only want to test the API (i.e. Project Reviewer), you can
-simply take the existing bearer tokens in `config.py`.
+DATABASE_URL - This is the Postgres database you want to use with this app.
 
-If you already know your way around `Auth0`, just insert your data 
-into `config.py` => auth0_config.
+TEST_DATABASE_URL - This the postgres database you want to use with test_app.py for testing
 
-FYI: Here are the steps I followed to enable [authentification](#authentification).
+4. Run the following command to store the environment variables in the local memory
+  ```bash 
+  $ source setup.sh
+  ```
+6. Use the ```capstonedb.psql``` to create the example tables ```actors``` and ```movies``` using the following command
+ ```bash 
+  $ psql yourdbname < capstonedb.psql
+  ```
 
-5. Run the development server:
+7. Run the development server:
   ```bash 
   $ python app.py
   ```
 
-6. (optional) To execute tests, run
+8. (optional) To execute tests, first create a tables for the test database described above and use ```capstone_test.psql``` file to start test database and run
 ```bash 
 $ python test_app.py
 ```
-If you choose to run all tests, it should give this response if everything went fine:
 
-```bash
-$ python test_app.py
-.........................
-----------------------------------------------------------------------
-Ran 25 tests in 18.132s
-
-OK
-
-```
 ## API Documentation
 <a name="api"></a>
 
 Here you can find all existing endpoints, which methods can be used, how to work with them & example responses you´ll get.
 
-Additionally, common pitfalls & error messages are explained, if applicable.
 
 ### Base URL
 
-**_https://artist-capstone-fsnd-matthew.herokuapp.com_**
+**_https://raj5uc-fsnd-capstone.herokuapp.com/_**
 
 ### Authentification
 
@@ -104,7 +82,7 @@ Please see [API Authentification](#authentification-bearer)
 
 ### Available Endpoints
 
-Here is a short table about which ressources exist and which method you can use on them.
+Here is a short table about which resources exist and which method you can use on them.
 
                           Allowed Methods
        Endpoints    |  GET |  POST |  DELETE | PATCH  |
@@ -121,33 +99,31 @@ Click on a link to directly get to the ressource.
    2. [POST /actors](#post-actors)
    3. [DELETE /actors](#delete-actors)
    4. [PATCH /actors](#patch-actors)
-2. Movies
-   1. [GET /movies](#get-movies)
-   2. [POST /movies](#post-movies)
-   3. [DELETE /movies](#delete-movies)
-   4. [PATCH /movies](#patch-movies)
+2. Movies: Movie endpoints are similar to the actors endpoints. Detailed explanation of these endpoints is not being provided
+   1. GET /movies
+   2. POST /movies
+   3. DELETE /movies
+   4. PATCH /movies
 
 Each ressource documentation is clearly structured:
 1. Description in a few words
-2. `curl` example that can directly be used in terminal
+2. `Postman` example to send requests
 3. More descriptive explanation of input & outputs.
 4. Required permission
 5. Example Response.
-6. Error Handling (`curl` command to trigger error + error response)
+
 
 # <a name="get-actors"></a>
 ### 1. GET /actors
 
-Query paginated actors.
+Query actors.
 
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/actors?page1
 ```
-- Fetches a list of dictionaries of examples in which the keys are the ids with all available fields
-- Request Arguments: 
-    - **integer** `page` (optional, 10 actors per page, defaults to `1` if not given)
-- Request Headers: **None**
-- Requires permission: `read:actors`
+GET https://raj5uc-fsnd-capstone.herokuapp.com/actors
+```
+- Fetches a list of actors in the database
+- Authorization: requires bearer token with permissions to Get Actors - See sample tokens in the end
+- Requires permission: `get:actors`
 - Returns: 
   1. List of dict of actors with following fields:
       - **integer** `id`
@@ -159,31 +135,21 @@ $ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/actors?page1
 #### Example response
 ```js
 {
-  "actors": [
-    {
-      "age": 25,
-      "gender": "Male",
-      "id": 1,
-      "name": "Matthew"
-    }
-  ],
-  "success": true
-}
-```
-#### Errors
-If you try fetch a page which does not have any actors, you will encounter an error which looks like this:
-
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/actors?page123124
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "no actors found in database.",
-  "success": false
+    "actors": [
+        {
+            "age": 25,
+            "gender": "male",
+            "id": 1,
+            "name": "Brad"
+        },
+        {
+            "age": 25,
+            "gender": "female",
+            "id": 2,
+            "name": "Jen"
+        }
+    ],
+    "success": true
 }
 ```
 
@@ -192,44 +158,32 @@ will return
 
 Insert new actor into database.
 
-```bash
-$ curl -X POST https://artist-capstone-fsnd-matthew.herokuapp.com/actors
 ```
-
+POST https://raj5uc-fsnd-capstone.herokuapp.com/actors
+```
+- Authorization: requires bearer token with permissions to Post Actors - See sample tokens in the end
 - Request Arguments: **None**
 - Request Headers: (_application/json_)
        1. **string** `name` (<span style="color:red">*</span>required)
        2. **integer** `age` (<span style="color:red">*</span>required)
        3. **string** `gender`
-- Requires permission: `create:actors`
+- Requires permission: `post:actors`
 - Returns: 
-  1. **integer** `id from newly created actor`
+  1. dict `containing the actor just added`
   2. **boolean** `success`
 
 #### Example response
 ```js
 {
-    "created": 5,
+    "actor_added": {
+        "age": 40,
+        "gender": "female",
+        "id": 6,
+        "name": "Wendy"
+    },
     "success": true
 }
 
-```
-#### Errors
-If you try to create a new actor without a requiered field like `name`,
-it will throw a `422` error:
-
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/actors?page123124
-```
-
-will return
-
-```js
-{
-  "error": 422,
-  "message": "no name provided.",
-  "success": false
-}
 ```
 
 # <a name="patch-actors"></a>
@@ -237,63 +191,31 @@ will return
 
 Edit an existing Actor
 
-```bash
-$ curl -X PATCH https://artist-capstone-fsnd-matthew.herokuapp.com/actors/1
 ```
-
+PATCH https://raj5uc-fsnd-capstone.herokuapp.com/actors/1
+```
+- Authorization: requires bearer token with permissions to update Actors - See sample tokens in the end
 - Request Arguments: **integer** `id from actor you want to update`
 - Request Headers: (_application/json_)
        1. **string** `name` 
        2. **integer** `age` 
        3. **string** `gender`
-- Requires permission: `edit:actors`
+- Requires permission: `update:actors`
 - Returns: 
-  1. **integer** `id from updated actor`
+  1. **dict** `containing the actor just added`
   2. **boolean** `success`
-  3. List of dict of actors with following fields:
-      - **integer** `id`
-      - **string** `name`
-      - **string** `gender`
-      - **integer** `age`
+
 
 #### Example response
 ```js
 {
-    "actor": [
-        {
-            "age": 30,
-            "gender": "Other",
-            "id": 1,
-            "name": "Test Actor"
-        }
-    ],
-    "success": true,
-    "updated": 1
-}
-```
-#### Errors
-If you try to update an actor with an invalid id it will throw an `404`error:
-
-```bash
-$ curl -X PATCH https://artist-capstone-fsnd-matthew.herokuapp.com/actors/125
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "Actor with id 125 not found in database.",
-  "success": false
-}
-```
-Additionally, trying to update an Actor with already existing field values will result in an `422` error:
-
-```js
-{
-  "error": 422,
-  "message": "provided field values are already set. No update needed.",
-  "success": false
+    "actor": {
+        "age": 35,
+        "gender": "male",
+        "id": 1,
+        "name": "Brad"
+    },
+    "success": true
 }
 ```
 
@@ -302,238 +224,29 @@ Additionally, trying to update an Actor with already existing field values will 
 
 Delete an existing Actor
 
-```bash
-$ curl -X DELETE https://artist-capstone-fsnd-matthew.herokuapp.com/actors/1
 ```
-
+DELETE https://raj5uc-fsnd-capstone.herokuapp.com/actors/1
+```
+- Authorization: requires bearer token with permissions to delete Actors - See sample tokens in the end
 - Request Arguments: **integer** `id from actor you want to delete`
 - Request Headers: `None`
 - Requires permission: `delete:actors`
 - Returns: 
-  1. **integer** `id from deleted actor`
+  1. **dict** `containing the actor just deleted`
   2. **boolean** `success`
 
 #### Example response
 ```js
 {
-    "deleted": 5,
+    "deleted_actor": {
+        "age": 40,
+        "gender": "female",
+        "id": 6,
+        "name": "Wendy"
+    },
     "success": true
 }
 
-```
-#### Errors
-If you try to delete actor with an invalid id, it will throw an `404`error:
-
-```bash
-$ curl -X DELETE https://artist-capstone-fsnd-matthew.herokuapp.com/actors/125
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "Actor with id 125 not found in database.",
-  "success": false
-}
-```
-
-# <a name="get-movies"></a>
-### 5. GET /movies
-
-Query paginated movies.
-
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/movies?page1
-```
-- Fetches a list of dictionaries of examples in which the keys are the ids with all available fields
-- Request Arguments: 
-    - **integer** `page` (optional, 10 movies per page, defaults to `1` if not given)
-- Request Headers: **None**
-- Requires permission: `read:movies`
-- Returns: 
-  1. List of dict of movies with following fields:
-      - **integer** `id`
-      - **string** `name`
-      - **date** `release_date`
-  2. **boolean** `success`
-
-#### Example response
-```js
-{
-  "movies": [
-    {
-      "id": 1,
-      "release_date": "Sun, 16 Feb 2020 00:00:00 GMT",
-      "title": "Matthew first Movie"
-    }
-  ],
-  "success": true
-}
-
-```
-#### Errors
-If you try fetch a page which does not have any movies, you will encounter an error which looks like this:
-
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/movies?page123124
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "no movies found in database.",
-  "success": false
-}
-```
-
-# <a name="post-movies"></a>
-### 6. POST /movies
-
-Insert new Movie into database.
-
-```bash
-$ curl -X POST https://artist-capstone-fsnd-matthew.herokuapp.com/movies
-```
-
-- Request Arguments: **None**
-- Request Headers: (_application/json_)
-       1. **string** `title` (<span style="color:red">*</span>required)
-       2. **date** `release_date` (<span style="color:red">*</span>required)
-- Requires permission: `create:movies`
-- Returns: 
-  1. **integer** `id from newly created movie`
-  2. **boolean** `success`
-
-#### Example response
-```js
-{
-    "created": 5,
-    "success": true
-}
-```
-#### Errors
-If you try to create a new movie without a requiered field like `name`,
-it will throw a `422` error:
-
-```bash
-$ curl -X GET https://artist-capstone-fsnd-matthew.herokuapp.com/movies?page123124
-```
-
-will return
-
-```js
-{
-  "error": 422,
-  "message": "no name provided.",
-  "success": false
-}
-```
-
-# <a name="patch-movies"></a>
-### 7. PATCH /movies
-
-Edit an existing Movie
-
-```bash
-$ curl -X PATCH https://artist-capstone-fsnd-matthew.herokuapp.com/movies/1
-```
-
-- Request Arguments: **integer** `id from movie you want to update`
-- Request Headers: (_application/json_)
-       1. **string** `title` 
-       2. **date** `release_date` 
-- Requires permission: `edit:movies`
-- Returns: 
-  1. **integer** `id from updated movie`
-  2. **boolean** `success`
-  3. List of dict of movies with following fields:
-        - **integer** `id`
-        - **string** `title` 
-        - **date** `release_date` 
-
-#### Example response
-```js
-{
-    "created": 1,
-    "movie": [
-        {
-            "id": 1,
-            "release_date": "Sun, 16 Feb 2020 00:00:00 GMT",
-            "title": "Test Movie 123"
-        }
-    ],
-    "success": true
-}
-
-```
-#### Errors
-If you try to update an movie with an invalid id it will throw an `404`error:
-
-```bash
-$ curl -X PATCH https://artist-capstone-fsnd-matthew.herokuapp.com/movies/125
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "Movie with id 125 not found in database.",
-  "success": false
-}
-```
-Additionally, trying to update an Movie with already existing field values will result in an `422` error:
-
-```js
-{
-  "error": 422,
-  "message": "provided field values are already set. No update needed.",
-  "success": false
-}
-```
-
-# <a name="delete-movies"></a>
-### 8. DELETE /movies
-
-Delete an existing movie
-
-```bash
-$ curl -X DELETE https://artist-capstone-fsnd-matthew.herokuapp.com/movies/1
-```
-
-- Request Arguments: **integer** `id from movie you want to delete`
-- Request Headers: `None`
-- Requires permission: `delete:movies`
-- Returns: 
-  1. **integer** `id from deleted movie`
-  2. **boolean** `success`
-
-#### Example response
-```js
-{
-    "deleted": 5,
-    "success": true
-}
-
-```
-#### Errors
-If you try to delete movie with an invalid id, it will throw an `404`error:
-
-```bash
-$ curl -X DELETE https://artist-capstone-fsnd-matthew.herokuapp.com/movies/125
-```
-
-will return
-
-```js
-{
-  "error": 404,
-  "message": "Movie with id 125 not found in database.",
-  "success": false
-}
 ```
 
 # <a name="authentification"></a>
@@ -547,14 +260,14 @@ All API Endpoints are decorated with Auth0 permissions. To use the project local
 1. Login to https://manage.auth0.com/ 
 2. Click on Applications Tab
 3. Create Application
-4. Give it a name like `Music` and select "Regular Web Application"
-5. Go to Settings and find `domain`. Copy & paste it into config.py => auth0_config['AUTH0_DOMAIN'] (i.e. replace `"example-matthew.eu.auth0.com"`)
+4. Give it a name like `casting` and select "Regular Web Application"
+5. Go to Settings and find `domain`. Copy & paste it into setup.sh AUTH0_DOMAIN variable
 6. Click on API Tab 
 7. Create a new API:
-   1. Name: `Music`
-   2. Identifier `Music`
+   1. Name: `casting`
+   2. Identifier `casting`
    3. Keep Algorithm as it is
-8. Go to Settings and find `Identifier`. Copy & paste it into config.py => auth0_config['API_AUDIENCE'] (i.e. replace `"Example"`)
+8. Go to Settings and find `Identifier`. Copy & paste it into setup.sh API_AUDIENCE' variable
 
 #### Create Roles & Permissions
 
@@ -569,22 +282,22 @@ All API Endpoints are decorated with Auth0 permissions. To use the project local
 
 # <a name="authentification-bearer"></a>
 ### Auth0 to use existing API
-If you want to access the real, temporary API, bearer tokens for all 3 roles are included in the `config.py` file.
+If you want to access the real, temporary API, bearer tokens for all 3 roles are included at the end of this Readme File
 
 ## Existing Roles
 
 They are 3 Roles with distinct permission sets:
 
 1. Casting Assistant:
-  - GET /actors (view:actors): Can see all actors
-  - GET /movies (view:movies): Can see all movies
+  - GET /actors (get:actors): Can see all actors
+  - GET /movies (get:movies): Can see all movies
 2. Casting Director (everything from Casting Assistant plus)
-  - POST /actors (create:actors): Can create new Actors
-  - PATCH /actors (edit:actors): Can edit existing Actors
+  - POST /actors (post:actors): Can create new Actors
+  - PATCH /actors (update:actors): Can edit existing Actors
   - DELETE /actors (delete:actors): Can remove existing Actors from database
-  - PATCH /movies (edit:movies): Can edit existing Movies
+  - PATCH /movies (update:movies): Can edit existing Movies
 3. Exectutive Dircector (everything from Casting Director plus)
-  - POST /movies (create:movies): Can create new Movies
+  - POST /movies (post:movies): Can create new Movies
   - DELETE /movies (delete:movies): Can remove existing Motives from database
 
 In your API Calls, add them as Header, with `Authorization` as key and the `Bearer token` as value. Don´t forget to also
@@ -593,6 +306,6 @@ prepend `Bearer` to the token (seperated by space).
 For example: (Bearer token for `Executive Director`)
 ```js
 {
-    "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik16azVRVUk0TXpSR04wSXhOVU13TkRrME16QXdNMFpHTmtFMU1VWXdPRUpCTmpnMFJrVTBSZyJ9.eyJpc3MiOiJodHRwczovL2ZzbmQtbWF0dGhldy5ldS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWU0N2VmYzc2N2YxYmEwZWJiNDIwMTYzIiwiYXVkIjoiTXVzaWMiLCJpYXQiOjE1ODE4NjI0NjksImV4cCI6MTU4MTg2OTY2OSwiYXpwIjoiVGh2aG9mdmtkRTQwYlEzTkMzSzdKdFdSSzdSMzFOZDciLCJzY29wZSI6IiIsInBlcm1pc3Npb25zIjpbImNyZWF0ZTphY3RvcnMiLCJjcmVhdGU6bW92aWVzIiwiZGVsZXRlOmFjdG9ycyIsImRlbGV0ZTptb3ZpZXMiLCJlZGl0OmFjdG9ycyIsImVkaXQ6bW92aWVzIiwicmVhZDphY3RvcnMiLCJyZWFkOm1vdmllcyJdfQ.iScamWOFNx9pjiVZhsvPzDoRi6EraZaxWg-WMj80HNW_-dchkOymnKA7OOhPQ8svLc9-wViLlCT-ySnupZ-209cIBVHSA_slncSP-lzEM6NKbBmDEETTQ1oxv2jTH-JL72eLhyAWUsmSIZDmEab1hln1yWEN7mUnn0nZJfxCRCs89h5EGJzXS2v8PbAjq9Mu7wFsrioEMx_PGWzSM0r5WIrKBvpXRy0Jm-vssZl4M1akDHIL5Shcfp_Bfnarc2OLOMvdQVHVDEWhrbFSnfCENLDxkcmB18VnOedJAuY_C88YRUfY2wQAOPux8RVuqIb5KxTg4YP7kiDcBUKXEnhL9A"
+    "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InJ4MXFWU2QyLW90UXNhb0tacG9waiJ9.eyJpc3MiOiJodHRwczovL2dyYWpuaWthbnRoLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw1Zjc2ZDIzZWE1MTFmZTAwNmI3OTk5OGEiLCJhdWQiOiJjYXN0aW5nIiwiaWF0IjoxNjAxOTc0MjI2LCJleHAiOjE2MDIwNjA2MjYsImF6cCI6IlNPR1NEa3FmVkZZUXpSNmNFREVNUjBvWWhVS2dDNFh1Iiwic2NvcGUiOiIiLCJwZXJtaXNzaW9ucyI6WyJkZWxldGU6YWN0b3JzIiwiZGVsZXRlOm1vdmllcyIsImdldDphY3RvcnMiLCJnZXQ6bW92aWVzIiwicG9zdDphY3RvcnMiLCJwb3N0Om1vdmllcyIsInVwZGF0ZTphY3RvcnMiLCJ1cGRhdGU6bW92aWVzIl19.ZenjfuuTIEVrGTB3A0aaTCAXYPTQgonw2lca0tZyUQh6DeGFW4YWrnx_emWFsPFDlXase3b9300lqmwBMgqDji1crpHrPu9DOmMn3c-IPuBTwT898VW409fuT4DX7kruwhsY-WEYoaV7H-ybtEURUdLI5SIMspDIWgjRDpGjysW-EmD1zW5iUz8VCLAvjLXe-8Jm1HMbdfmsn2XOLNFfmqbQLgFgz4_vTxmsyiq19DPfHGDW-yYUKc7mUUV4taaS7f1oI4YrA-gqUrdEHx87LNt3DxWt701ORly2iEFPOUCpe-AEbToQH2QQuDVrZ-3yEZ-1tDuJEPw1RMtL5Y2PwQ"
 }
 ```
