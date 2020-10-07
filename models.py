@@ -3,7 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 import os
 
-# obtain the postgres database path from environment variable. This will work in Heroku as well with key config
+# obtain the postgres database path from environment variable. This will
+# work in Heroku as well with key config
 database_path = os.environ['DATABASE_URL']
 
 db = SQLAlchemy()
@@ -12,6 +13,8 @@ db = SQLAlchemy()
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
+
+
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -32,7 +35,7 @@ class Actors(db.Model):
     age = Column(Integer)
     gender = Column(String)
 
-    def __init__(self, name,  age, gender):
+    def __init__(self, name, age, gender):
         self.name = name
         self.age = age
         self.gender = gender
@@ -58,6 +61,8 @@ class Actors(db.Model):
 
 # Movie Class with table = movies
 # Movies with attributes title and release date
+
+
 class Movies(db.Model):
     __tablename__ = 'movies'
 
@@ -86,6 +91,3 @@ class Movies(db.Model):
             'title': self.title,
             'release_date': self.release_date
         }
-
-    
-
